@@ -17,6 +17,11 @@ def get_xpath_for_shelf_element(element):
            f"2]/span"
 
 
+def get_xpath_for_price(element, part):
+    return f"//*[@id=\"page-content\"]/div/div[2]/div/div[3]/div/div[{element}]/div/div/div/div/div[3]/div[3" \
+           f"]/div/div[2]/div/div/span/span[{part}]"
+
+
 class Driver:
     def __init__(self, browser="chrome"):
         if browser == "chrome":
@@ -37,7 +42,8 @@ class Driver:
             try:
                 found_product = self.get_product_name(iteration)
                 if product.lower() in found_product.lower():
-                    print(iteration, found_product)
+                    price = self.get_product_price(iteration)
+                    print(iteration, found_product, price)
             except NoSuchElementException:
                 pass
             except TimeoutException:
@@ -49,3 +55,9 @@ class Driver:
         xpath = get_xpath_for_shelf_element(iteration)
         self.wait_products_shelf.until(ec.presence_of_element_located((By.XPATH, xpath)))
         return self.driver.find_element(By.XPATH, xpath).text
+
+    def get_product_price(self, element):
+        part_1 = self.driver.find_element(By.XPATH, get_xpath_for_price(element, 1)).text
+        part_2 = self.driver.find_element(By.XPATH, get_xpath_for_price(element, 2)).text
+        part_3 = self.driver.find_element(By.XPATH, get_xpath_for_price(element, 3)).text
+        return part_1 + part_2 + part_3
