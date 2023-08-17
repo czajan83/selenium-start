@@ -11,6 +11,7 @@ from selenium.webdriver.support import expected_conditions as ec
 
 COOKIES_ACC_BTN_XPATH = f"//*[@id=\"wrapper\"]/div[1]/div/div/div[2]/div/button[1]"
 SEARCH_EDITTEXT_XPATH = f"//*[@id=\"header\"]/div[1]/div/div[2]/div/div/form/input"
+SEARCH_EDITTEXT_CLEAR_XPATH = f"//*[@id=\"header\"]/div[1]/div/div[2]/div/div/form/div[1]"
 
 
 def get_xpath_for_shelf_element(element):
@@ -38,13 +39,21 @@ def get_xpath_for_order_more(element):
            f"]/div/div[3]/div[3]"
 
 
+def get_xpath_for_button_text(element):
+    return f"//*[@id=\"page-content\"]/div/div[2]/div/div[3]/div/div[{element}]/div/div/div/div/a"
+
+
+def get_xpath_for_first_product():
+    return f"//*[@id=\"page-content\"]/div/div[2]/div/div[3]/div/div[1]/div/div/div/div"
+
+
 class Driver:
     def __init__(self, browser="chrome"):
         if browser == "chrome":
             self.driver = webdriver.Chrome(service=Service("chromedriver.exe"))
             self.driver.maximize_window()
             self.wait_cookies_banner = WebDriverWait(self.driver, 20)
-            self.wait_products_shelf = WebDriverWait(self.driver, 5)
+            self.wait_products_shelf = WebDriverWait(self.driver, 10)
 
     def setup(self, website="https://www.frisco.pl"):
         self.driver.get(website)
@@ -53,10 +62,17 @@ class Driver:
 
     def add_to_basket(self, product, amount=0):
         self.driver.find_element(By.XPATH, SEARCH_EDITTEXT_XPATH).send_keys(f"{product}\n")
-        iteration = 2
+        self.wait_products_shelf.until(ec.presence_of_element_located((By.XPATH, get_xpath_for_first_product())))
+        iteration = 1
         the_cheapest = 0
         the_cheapest_price = 1000000
         while iteration < 11:
+            try:
+                if self.driver.find_element(By.XPATH, get_xpath_for_button_text(iteration)).text == f"Zobacz promocję":
+                    iteration += 1
+                    continue
+            except NoSuchElementException:
+                pass
             try:
                 found_product = self.get_product_name(iteration)
                 if product.lower() in found_product.lower():
@@ -69,11 +85,13 @@ class Driver:
             except NoSuchElementException:
                 pass
             except TimeoutException:
-                pass
+                print("a")
+                break
             finally:
                 iteration += 1
         self.driver.find_element(By.XPATH, get_xpath_for_add_to_basket(the_cheapest)).click()
-        self.driver.find_element(By.XPATH, get_xpath_for_order_more(the_cheapest)).click()
+        # self.driver.find_element(By.XPATH, get_xpath_for_order_more(the_cheapest)).click()
+        self.driver.find_element(By.XPATH, SEARCH_EDITTEXT_CLEAR_XPATH).click()
         time.sleep(1)
 
     def get_product_name(self, iteration):
