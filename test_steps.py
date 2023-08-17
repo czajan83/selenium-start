@@ -1,3 +1,4 @@
+import re
 import time
 
 from selenium import webdriver
@@ -22,6 +23,21 @@ def get_xpath_for_price(element, part):
            f"]/div/div[2]/div/div/span/span[{part}]"
 
 
+def get_xpath_for_amount(element):
+    return f"//*[@id=\"page-content\"]/div/div[2]/div/div[3]/div/div[{element}]/div/div/div/div/div[3]/div[3" \
+           f"]/a/span[3]/span[2]"
+
+
+def get_xpath_for_add_to_basket(element):
+    return f"//*[@id=\"page-content\"]/div/div[2]/div/div[3]/div/div[{element}]/div/div/div/div/div[3]/div[3" \
+           f"]/div/div[3]"
+
+
+def get_xpath_for_order_more(element):
+    return f"//*[@id=\"page-content\"]/div/div[2]/div/div[3]/div/div[{element}]/div/div/div/div/div[3]/div[3" \
+           f"]/div/div[3]/div[3]"
+
+
 class Driver:
     def __init__(self, browser="chrome"):
         if browser == "chrome":
@@ -38,18 +54,27 @@ class Driver:
     def add_to_basket(self, product, amount=0):
         self.driver.find_element(By.XPATH, SEARCH_EDITTEXT_XPATH).send_keys(f"{product}\n")
         iteration = 2
+        the_cheapest = 0
+        the_cheapest_price = 1000000
         while iteration < 11:
             try:
                 found_product = self.get_product_name(iteration)
                 if product.lower() in found_product.lower():
                     price = self.get_product_price(iteration)
-                    print(iteration, found_product, price)
+                    amount = self.get_product_amount(iteration)
+                    unit_price = float(price.replace(",", ".")) / amount
+                    if unit_price < the_cheapest_price:
+                        the_cheapest = iteration
+                        the_cheapest_price = unit_price
             except NoSuchElementException:
                 pass
             except TimeoutException:
                 pass
             finally:
                 iteration += 1
+        self.driver.find_element(By.XPATH, get_xpath_for_add_to_basket(the_cheapest)).click()
+        self.driver.find_element(By.XPATH, get_xpath_for_order_more(the_cheapest)).click()
+        time.sleep(1)
 
     def get_product_name(self, iteration):
         xpath = get_xpath_for_shelf_element(iteration)
@@ -61,3 +86,11 @@ class Driver:
         part_2 = self.driver.find_element(By.XPATH, get_xpath_for_price(element, 2)).text
         part_3 = self.driver.find_element(By.XPATH, get_xpath_for_price(element, 3)).text
         return part_1 + part_2 + part_3
+
+    def get_product_amount(self, element):
+        amount = self.driver.find_element(By.XPATH, get_xpath_for_amount(element)).text
+        pattern = re.compile(r"[0-9]+")
+        num_amount = int(pattern.findall(amount)[0])
+        if "g" in amount and "kg" not in amount:
+            num_amount /= 1000
+        return num_amount
