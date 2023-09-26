@@ -3,11 +3,13 @@ import time
 
 from selenium import webdriver
 from selenium.common import NoSuchElementException, TimeoutException
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
+from webdriver_manager.chrome import ChromeDriverManager
 
 COOKIES_ACC_BTN_XPATH = f"//*[@id=\"wrapper\"]/div[1]/div/div/div[2]/div/button[1]"
 SEARCH_EDITTEXT_XPATH = f"//*[@id=\"header\"]/div[1]/div/div[2]/div/div/form/input"
@@ -50,7 +52,8 @@ def get_xpath_for_first_product():
 class Driver:
     def __init__(self, browser="chrome"):
         if browser == "chrome":
-            self.driver = webdriver.Chrome(service=Service("chromedriver.exe"))
+            options_2 = Options()
+            self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options_2)
             self.driver.maximize_window()
             self.wait_cookies_banner = WebDriverWait(self.driver, 20)
             self.wait_products_shelf = WebDriverWait(self.driver, 10)
