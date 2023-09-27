@@ -1,12 +1,10 @@
 from test_steps import Driver
+import time
 
 
 def main():
-    driver = Driver()
-    driver.setup()
-    driver.add_to_basket("cytryny")
-    driver.add_to_basket("pomarańcze")
-    driver.add_to_basket("sok 100% NFC z pomarańczy wyciskanych")
+    driver = Driver("opera")
+    driver.run()
     print("done")
 
 

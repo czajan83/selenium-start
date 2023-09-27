@@ -3,16 +3,18 @@ import time
 
 from selenium import webdriver
 from selenium.common import NoSuchElementException, TimeoutException
+from selenium.webdriver.chrome import service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
-from webdriver_manager.chrome import ChromeDriverManager
 
-COOKIES_ACC_BTN_XPATH = f"//*[@id=\"wrapper\"]/div[1]/div/div/div[2]/div/button[1]"
-SEARCH_EDITTEXT_XPATH = f"//*[@id=\"header\"]/div[1]/div/div[2]/div/div/form/input"
+# COOKIES_ACC_BTN_XPATH = f"//*[@id=\"wrapper\"]/div[1]/div/div/div[2]/div/button[1]"
+# SEARCH_EDITTEXT_XPATH = f"//*[@id=\"header\"]/div[1]/div/div[2]/div/div/form/input"
+COOKIES_ACC_BTN_XPATH = f"/html/body/div[1]/div/div[1]/div/div/div[2]/div/button[1]"
+SEARCH_EDITTEXT_XPATH = f"/html/body/div[1]/div/div[2]/div/div[1]/div/div[2]/div/div/form/input"
 SEARCH_EDITTEXT_CLEAR_XPATH = f"//*[@id=\"header\"]/div[1]/div/div[2]/div/div/form/div[1]"
 
 
@@ -50,15 +52,26 @@ def get_xpath_for_first_product():
 
 
 class Driver:
-    def __init__(self, browser="chrome"):
-        if browser == "chrome":
-            options_2 = Options()
-            self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options_2)
-            self.driver.maximize_window()
-            self.wait_cookies_banner = WebDriverWait(self.driver, 20)
-            self.wait_products_shelf = WebDriverWait(self.driver, 10)
+    def __init__(self, browser="opera"):
+        self.wait_products_shelf = None
+        self.wait_cookies_banner = None
+        self.driver = None
+        self.browser = browser
 
     def setup(self, website="https://www.frisco.pl"):
+        if self.browser == "chrome":
+            options_2 = Options()
+            self.driver = webdriver.Chrome(service=Service("chromedriver.exe"), options=options_2)
+        else:
+            webdriver_service = service.Service("operadriver.exe")
+            webdriver_service.start()
+            options = webdriver.ChromeOptions()
+            options.add_argument('allow-elevated-browser')
+            options.add_experimental_option('w3c', True)
+            self.driver = webdriver.Remote(webdriver_service.service_url, options=options)
+        self.wait_cookies_banner = WebDriverWait(self.driver, 20)
+        self.wait_products_shelf = WebDriverWait(self.driver, 10)
+        self.driver.maximize_window()
         self.driver.get(website)
         self.wait_cookies_banner.until(ec.presence_of_element_located((By.XPATH, COOKIES_ACC_BTN_XPATH)))
         self.driver.find_element(By.XPATH, COOKIES_ACC_BTN_XPATH).click()
@@ -115,3 +128,7 @@ class Driver:
         if "g" in amount and "kg" not in amount:
             num_amount /= 1000
         return num_amount
+
+    def run(self):
+        self.setup()
+        self.add_to_basket("cytryny")
