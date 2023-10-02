@@ -4,7 +4,8 @@ import time
 
 def main():
     driver = Driver("opera")
-    driver.run()
+    driver.setup()
+    driver.add_to_basket("cytryny")
     print("done")
 
 

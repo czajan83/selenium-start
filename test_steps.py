@@ -2,19 +2,14 @@ import re
 import time
 
 from selenium import webdriver
-from selenium.common import NoSuchElementException, TimeoutException
-from selenium.webdriver.chrome import service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 
-# COOKIES_ACC_BTN_XPATH = f"//*[@id=\"wrapper\"]/div[1]/div/div/div[2]/div/button[1]"
-# SEARCH_EDITTEXT_XPATH = f"//*[@id=\"header\"]/div[1]/div/div[2]/div/div/form/input"
-COOKIES_ACC_BTN_XPATH = f"/html/body/div[1]/div/div[1]/div/div/div[2]/div/button[1]"
-SEARCH_EDITTEXT_XPATH = f"/html/body/div[1]/div/div[2]/div/div[1]/div/div[2]/div/div/form/input"
+COOKIES_ACC_BTN_XPATH = f"//*[@id=\"wrapper\"]/div[1]/div/div/div[2]/div/button[1]"
+SEARCH_EDITTEXT_XPATH = f"//*[@id=\"header\"]/div[1]/div/div[2]/div/div/form/input"
 SEARCH_EDITTEXT_CLEAR_XPATH = f"//*[@id=\"header\"]/div[1]/div/div[2]/div/div/form/div[1]"
 
 
@@ -60,15 +55,9 @@ class Driver:
 
     def setup(self, website="https://www.frisco.pl"):
         if self.browser == "chrome":
-            options_2 = Options()
-            self.driver = webdriver.Chrome(service=Service("chromedriver.exe"), options=options_2)
+            self.driver = webdriver.Chrome(executable_path="/home/andrzej/Development/selenium-start/chromedriver")
         else:
-            webdriver_service = service.Service("operadriver.exe")
-            webdriver_service.start()
-            options = webdriver.ChromeOptions()
-            options.add_argument('allow-elevated-browser')
-            options.add_experimental_option('w3c', True)
-            self.driver = webdriver.Remote(webdriver_service.service_url, options=options)
+            self.driver = webdriver.Opera(executable_path="/home/andrzej/Development/selenium-start/operadriver")
         self.wait_cookies_banner = WebDriverWait(self.driver, 20)
         self.wait_products_shelf = WebDriverWait(self.driver, 10)
         self.driver.maximize_window()
@@ -101,13 +90,12 @@ class Driver:
             except NoSuchElementException:
                 pass
             except TimeoutException:
-                print("a")
                 break
             finally:
                 iteration += 1
-        self.driver.find_element(By.XPATH, get_xpath_for_add_to_basket(the_cheapest)).click()
+        # self.driver.find_element(By.XPATH, get_xpath_for_add_to_basket(the_cheapest)).click()
         # self.driver.find_element(By.XPATH, get_xpath_for_order_more(the_cheapest)).click()
-        self.driver.find_element(By.XPATH, SEARCH_EDITTEXT_CLEAR_XPATH).click()
+        # self.driver.find_element(By.XPATH, SEARCH_EDITTEXT_CLEAR_XPATH).click()
         time.sleep(1)
 
     def get_product_name(self, iteration):
@@ -128,7 +116,3 @@ class Driver:
         if "g" in amount and "kg" not in amount:
             num_amount /= 1000
         return num_amount
-
-    def run(self):
-        self.setup()
-        self.add_to_basket("cytryny")
