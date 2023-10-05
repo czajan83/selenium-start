@@ -1,8 +1,7 @@
 import re
-
 from selenium.common.exceptions import NoSuchElementException
-
 from test_steps import Driver
+from sensitive_data import FriscoSensitiveData as fsd
 
 SEARCH_EDITTEXT_CLEAR_XPATH = f"//*[@id=\"header\"]/div[1]/div/div[2]/div/div/form/div[1]"
 
