@@ -1,11 +1,12 @@
-from test_steps import Driver
-import time
+from frisco_website import FriscoWebsite
 
 
 def main():
-    driver = Driver("opera")
-    driver.setup()
-    driver.add_to_basket("cytryny")
+    task = FriscoWebsite("chrome")
+    task.setup()
+    task.open_website()
+    task.login()
+    task.add_to_basket("cytryny")
     print("done")
 
 
